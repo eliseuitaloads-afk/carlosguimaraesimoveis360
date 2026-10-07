@@ -1,8 +1,4 @@
 {
- "name": "Carlos Guimarães Chacara Aeroporto",
- "background_color": "#FFFFFF",
- "start_url": "index.htm?installed=true",
- "theme_color": "#FFFFFF",
  "icons": [
   {
    "sizes": "512x512",
@@ -20,5 +16,9 @@
    "src": "icons/icon64.png"
   }
  ],
- "display": "fullscreen"
+ "name": "Carlos Guimarães Chacara Aeroporto",
+ "theme_color": "#FFFFFF",
+ "start_url": "index.htm?installed=true",
+ "display": "fullscreen",
+ "background_color": "#FFFFFF"
 }
