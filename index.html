@@ -45,7 +45,10 @@
   @media(min-width:760px){.modal{align-items:center;}.sheet{border-radius:20px;max-height:92vh;}}
   .viewer{position:relative;width:100%;aspect-ratio:16/10;background:#060b16;flex:none;} .viewer iframe,.viewer video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;} .viewer video{object-fit:contain;} .frame-hidden{display:none;}
   .viewer-tabs{position:absolute;top:12px;left:12px;z-index:5;display:flex;gap:8px;} .vtab{background:rgba(6,11,22,.82);border:1px solid var(--line);color:var(--white);font-size:13px;font-weight:600;padding:8px 13px;border-radius:100px;display:inline-flex;align-items:center;gap:7px;} .vtab.active{background:var(--gold);color:#0b1428;border-color:var(--gold);} .vtab .ic{width:15px;height:15px;}
-  .closeb{position:absolute;top:12px;right:12px;z-index:6;width:38px;height:38px;border-radius:50%;background:rgba(6,11,22,.82);border:1px solid var(--line);color:#fff;display:flex;align-items:center;justify-content:center;}
+  .closeb{position:absolute;top:12px;right:12px;z-index:7;width:38px;height:38px;border-radius:50%;background:rgba(6,11,22,.82);border:1px solid var(--line);color:#fff;display:flex;align-items:center;justify-content:center;}
+  .fsbtn{position:absolute;top:12px;right:58px;z-index:7;height:38px;padding:0 13px;border-radius:100px;background:rgba(6,11,22,.82);border:1px solid var(--line);color:#fff;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer;} .fsbtn svg{width:16px;height:16px;}
+  .viewer.fs{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;aspect-ratio:auto;z-index:9999;border-radius:0;} body.vfs{overflow:hidden;}
+  @media(max-width:759px){.viewer{aspect-ratio:auto;height:60vh;}}
   .video-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:20px;font-size:14px;}
   .sheet-body{padding:20px;overflow-y:auto;} .sheet-body h2{font-size:24px;} .sheet-loc{color:var(--muted);font-size:14px;margin:6px 0 16px;display:flex;align-items:center;gap:7px;} .sheet-loc .ic{width:15px;height:15px;color:var(--gold);}
   .specs{display:flex;flex-wrap:wrap;gap:16px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);} .spec{display:flex;align-items:center;gap:8px;font-size:14px;} .spec .ic{width:18px;height:18px;color:var(--gold);}
@@ -85,7 +88,8 @@
   <div class="viewer">
     <div class="viewer-tabs"><button class="vtab active" id="tab360"><svg class="ic"><use href="#i-360"/></svg> Tour 360</button><button class="vtab" id="tabVideo"><svg class="ic"><use href="#i-play"/></svg> Vídeo</button></div>
     <button class="closeb" id="closeb" aria-label="Fechar"><svg class="ic"><use href="#i-close"/></svg></button>
-    <iframe id="tourFrame" title="Tour 360" allow="fullscreen; accelerometer; gyroscope; magnetometer; xr-spatial-tracking"></iframe>
+    <button class="fsbtn" id="fsbtn" aria-label="Tela cheia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fsbtnTxt">Tela cheia</span></button>
+    <iframe id="tourFrame" title="Tour 360" allow="fullscreen; accelerometer; gyroscope; magnetometer; xr-spatial-tracking" allowfullscreen></iframe>
     <video id="video" class="frame-hidden" controls playsinline></video>
     <div class="video-empty" id="videoEmpty">Vídeo desta casa ainda não enviado.</div>
   </div>
@@ -127,8 +131,14 @@ function openHouse(i){ const h=HOUSES[i]; cur=h;
   show360(); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
 function show360(){ tab360.classList.add('active'); tabVideo.classList.remove('active'); frame.classList.remove('frame-hidden'); video.classList.add('frame-hidden'); videoEmpty.style.display='none'; try{video.pause();}catch(e){} if(cur&&cur.tour_url&&frame.getAttribute('src')!==cur.tour_url)frame.setAttribute('src',cur.tour_url); if(!cur||!cur.tour_url){frame.removeAttribute('src');} }
 function showVideo(){ tabVideo.classList.add('active'); tab360.classList.remove('active'); frame.classList.add('frame-hidden'); if(cur&&cur.video_url){video.classList.remove('frame-hidden');videoEmpty.style.display='none';if(video.getAttribute('src')!==cur.video_url)video.setAttribute('src',cur.video_url);}else{video.classList.add('frame-hidden');videoEmpty.style.display='flex';} }
-function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; frame.setAttribute('src','about:blank'); try{video.pause();}catch(e){} video.removeAttribute('src'); cur=null; }
-closeb.addEventListener('click',closeModal); modal.addEventListener('click',e=>{if(e.target===modal)closeModal();}); tab360.addEventListener('click',show360); tabVideo.addEventListener('click',showVideo); addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+function closeModal(){ if(typeof isFs==='function'&&isFs())exitFs(); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; frame.setAttribute('src','about:blank'); try{video.pause();}catch(e){} video.removeAttribute('src'); cur=null; }
+closeb.addEventListener('click',closeModal); modal.addEventListener('click',e=>{if(e.target===modal&&!isFs())closeModal();}); tab360.addEventListener('click',show360); tabVideo.addEventListener('click',showVideo); addEventListener('keydown',e=>{if(e.key==='Escape'){ if(isFs())exitFs(); else closeModal(); }});
+const fsbtn=document.getElementById('fsbtn'),fsbtnTxt=document.getElementById('fsbtnTxt'),viewerEl=document.querySelector('.viewer');
+function isFs(){return viewerEl.classList.contains('fs');}
+function enterFs(){viewerEl.classList.add('fs');document.body.classList.add('vfs');fsbtnTxt.textContent='Sair';var r=viewerEl.requestFullscreen||viewerEl.webkitRequestFullscreen;if(r){try{var p=r.call(viewerEl);if(p&&p.catch)p.catch(function(){});}catch(e){}}}
+function exitFs(){viewerEl.classList.remove('fs');document.body.classList.remove('vfs');fsbtnTxt.textContent='Tela cheia';try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();else if(document.webkitFullscreenElement&&document.webkitExitFullscreen)document.webkitExitFullscreen();}catch(e){}}
+fsbtn.addEventListener('click',function(){isFs()?exitFs():enterFs();});
+document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&isFs()){viewerEl.classList.remove('fs');document.body.classList.remove('vfs');fsbtnTxt.textContent='Tela cheia';}});
 load();
 </script>
 </body>
